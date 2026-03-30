@@ -1,0 +1,756 @@
+/* Buried Hunger — subterranean flesh / decay UI */
+
+:root {
+  --void: #070504;
+  --surface: #120c0a;
+  --panel: #1a1210;
+  --panel-edge: #3d2824;
+  --text: #d9c9bf;
+  --muted: #7a655c;
+  --meat: #c45c52;
+  --meat-dim: #8a3a35;
+  --flesh: #a67b6f;
+  --ichor: #4a2a22;
+  --bone: #c4b5a8;
+  --font-ui: Georgia, "Times New Roman", serif;
+  --font-mono: "Consolas", "Courier New", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+/* Subtle breathing + grain feel via gradients */
+body {
+  background:
+    radial-gradient(ellipse 100% 80% at 50% 100%, #1f0e0c 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 30% 20%, rgba(90, 40, 35, 0.12) 0%, transparent 50%),
+    var(--void);
+  animation: body-pulse 10s ease-in-out infinite;
+}
+
+@keyframes body-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.04);
+  }
+}
+
+.app {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px 18px 24px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- Top bar --- */
+.top-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 20px;
+  padding: 12px 16px;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  box-shadow: inset 0 1px 0 rgba(196, 92, 82, 0.06);
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--flesh);
+}
+
+.version {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+}
+
+.resources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+  flex: 1;
+  justify-content: center;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 110px;
+}
+
+.stat-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.stat-value {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.stat-value.meat {
+  color: var(--meat);
+  text-shadow: 0 0 14px rgba(196, 92, 82, 0.25);
+}
+
+.top-actions {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Buttons --- */
+.btn {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 9px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--panel-edge);
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s, color 0.15s, transform 0.08s;
+}
+
+.btn:hover:not(:disabled) {
+  background: #221814;
+  border-color: var(--meat-dim);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-outline {
+  border-color: var(--flesh);
+  color: var(--flesh);
+}
+
+.btn-danger {
+  border-color: var(--meat-dim);
+  color: var(--meat);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(196, 92, 82, 0.12);
+}
+
+/* --- Grid --- */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr minmax(300px, 420px) 1fr;
+  gap: 14px;
+  flex: 1;
+  /* Top-align columns so the center panel is not stretched to match side height. */
+  align-items: start;
+  min-height: 300px;
+}
+
+@media (max-width: 920px) {
+  .main-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .creature-chamber {
+    --creature-display-h-num: 260;
+  }
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.panel-heading {
+  margin: 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--meat-dim);
+}
+
+.panel-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* --- Buy cards --- */
+.card {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--ichor);
+  border-radius: 5px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.card:hover {
+  border-color: var(--panel-edge);
+}
+
+.card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.card-name {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--bone);
+}
+
+.card-owned {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.card-mps {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 10px;
+}
+
+.card-mps-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.card-mps-value {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--meat);
+}
+
+.card-desc {
+  margin: 0 0 10px;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-cost {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--meat);
+}
+
+.card-cost.bad {
+  color: #e07870;
+  opacity: 0.85;
+}
+
+.btn-buy {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 8px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--meat-dim);
+  background: rgba(196, 92, 82, 0.1);
+  color: var(--meat);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, transform 0.08s;
+}
+
+.btn-buy:hover:not(:disabled) {
+  background: rgba(196, 92, 82, 0.2);
+  border-color: var(--meat);
+}
+
+.btn-buy:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn-buy:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: var(--ichor);
+  color: var(--muted);
+  background: transparent;
+}
+
+.card.done .btn-buy {
+  display: none;
+}
+
+.card.done .card-cost {
+  color: var(--muted);
+}
+
+.installed {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* --- Creature chamber (center) --- */
+.creature-chamber {
+  /* Sheet 984×644 px, five columns. Display height in px (width follows frame aspect). */
+  --creature-display-h-num: 320;
+  /* >1 scales the sheet taller than the clip window — higher = more top/bottom cropped off the art. */
+  --creature-vcrop-zoom: 2.28;
+  /* Vertical anchor for the oversized bg (try 38–52%). Lower = show more lower part of frame. */
+  --creature-focal-y: 40%;
+  /* Extra symmetric shave after bg crop (% of box height each top+bottom). */
+  --creature-edge-clip: 6%;
+  /* Same idea for left/right dead space inside each sheet column. */
+  --creature-edge-clip-x: 4.5%;
+  /* Single paint height for bg math (avoids broken multi-var calcs in some browsers). */
+  --creature-paint-h: calc(
+    var(--creature-display-h-num) * var(--creature-vcrop-zoom) * 1px
+  );
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  padding: 16px 18px 18px;
+  background: radial-gradient(ellipse 90% 70% at 50% 35%, #1f0f0c 0%, var(--panel) 55%);
+  border: 1px solid var(--panel-edge);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(196, 92, 82, 0.08);
+}
+
+.chamber-vignette {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 55% at 50% 42%, transparent 30%, rgba(0, 0, 0, 0.55) 100%);
+  z-index: 0;
+}
+
+.chamber-damp {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  background-image: radial-gradient(circle at 20% 30%, rgba(180, 120, 100, 0.4) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(100, 50, 45, 0.35) 0%, transparent 35%);
+  animation: damp-drift 14s ease-in-out infinite;
+  z-index: 0;
+}
+
+@keyframes damp-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2%, -1%);
+  }
+}
+
+.chamber-header {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.chamber-kicker {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.chamber-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+}
+
+.level-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: var(--bone);
+  padding: 4px 10px;
+  border: 1px solid var(--ichor);
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.form-name {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--flesh);
+  text-shadow: 0 0 20px rgba(166, 123, 111, 0.25);
+}
+
+.creature-stage {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  margin: 4px auto 2px;
+  /* Shrink-wrap to the sprite — no tall flex slot with centered tiny content. */
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  height: fit-content;
+  line-height: 0;
+  transition: transform 0.2s ease-out;
+  /* Shadow lives here so inner clip-path does not eat the glow. */
+  filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.6));
+}
+
+.creature-stage.creature-lunge {
+  animation: chamber-lunge 0.38s ease-out;
+}
+
+@keyframes chamber-lunge {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.06) translateY(2px);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+
+.creature {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  display: block;
+  margin: 0;
+  /* Clip window (visible) height; sheet is painted taller then cropped. */
+  height: calc(var(--creature-display-h-num) * 1px);
+  width: calc(var(--creature-paint-h) * 984 / 5 / 644);
+  max-width: 100%;
+  overflow: hidden;
+  /* Second pass: trim leftover letterboxing (top / right / bottom / left). */
+  clip-path: inset(
+    var(--creature-edge-clip) var(--creature-edge-clip-x) var(--creature-edge-clip)
+      var(--creature-edge-clip-x)
+  );
+  background-color: transparent;
+  background-image: url("assets/creature-evolution.png");
+  background-repeat: no-repeat;
+  /* Must match --creature-paint-h or the image stays tiny inside a tall box. */
+  background-size: auto var(--creature-paint-h);
+  background-position: left var(--creature-focal-y);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  animation: creature-sprite-pulse 4.6s ease-in-out infinite;
+}
+
+@keyframes creature-sprite-pulse {
+  0%,
+  100% {
+    filter: brightness(1);
+  }
+  50% {
+    filter: brightness(1.08);
+  }
+}
+
+/* Horizontal step = one column width at current paint height */
+.creature--1 {
+  background-position: left var(--creature-focal-y);
+}
+
+.creature--2 {
+  background-position: calc(-1 * var(--creature-paint-h) * 984 / 5 / 644)
+    var(--creature-focal-y);
+}
+
+.creature--3 {
+  background-position: calc(-2 * var(--creature-paint-h) * 984 / 5 / 644)
+    var(--creature-focal-y);
+}
+
+.creature--4 {
+  background-position: calc(-3 * var(--creature-paint-h) * 984 / 5 / 644)
+    var(--creature-focal-y);
+}
+
+.creature--5 {
+  background-position: calc(-4 * var(--creature-paint-h) * 984 / 5 / 644)
+    var(--creature-focal-y);
+}
+
+.creature.creature-snap {
+  animation: creature-snap 0.32s ease-out;
+}
+
+@keyframes creature-snap {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  40% {
+    transform: scale(1.06) rotate(-1.5deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.feed-command-label {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-align: center;
+  color: var(--muted);
+}
+
+.feed-btn {
+  position: relative;
+  z-index: 1;
+  align-self: center;
+  width: min(100%, 280px);
+  min-height: 100px;
+  padding: 18px 24px;
+  border: 2px solid var(--meat-dim);
+  border-radius: 48% 48% 46% 46% / 42% 42% 58% 58%;
+  background: linear-gradient(160deg, #2a1814 0%, #0f0a08 100%);
+  color: var(--text);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.6),
+    0 12px 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(196, 92, 82, 0.12);
+  transition: transform 0.12s ease-out, box-shadow 0.15s, border-color 0.15s;
+  animation: feed-idle 6s ease-in-out infinite;
+}
+
+@keyframes feed-idle {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.012);
+  }
+}
+
+.feed-btn:hover {
+  border-color: var(--meat);
+  box-shadow:
+    0 0 20px rgba(196, 92, 82, 0.15),
+    0 12px 40px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(196, 92, 82, 0.18);
+}
+
+.feed-btn:active {
+  transform: scale(0.94);
+  animation: none;
+}
+
+.feed-btn.clicked {
+  animation: feed-click 0.28s ease-out;
+}
+
+@keyframes feed-click {
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.feed-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--meat);
+}
+
+.feed-hint {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.whisper {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  max-width: 100%;
+  text-align: center;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.chamber-flavor {
+  min-height: 2.6em;
+  line-height: 1.35;
+  padding: 0 4px;
+}
+
+.chamber-stats {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  margin-top: 4px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--ichor);
+  border-radius: 5px;
+}
+
+.chamber-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.chamber-stat-label {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.chamber-stat-value {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.chamber-stat-value.meat {
+  color: var(--meat);
+}
+
+/* --- Log --- */
+.log-section {
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  border-radius: 6px;
+  padding: 12px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 110px;
+  max-height: 170px;
+}
+
+.log-heading {
+  flex-shrink: 0;
+}
+
+.event-log {
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: var(--muted);
+  padding-right: 6px;
+}
+
+.event-log .line {
+  margin-bottom: 7px;
+  padding-left: 10px;
+  border-left: 2px solid var(--ichor);
+}
+
+.event-log .line.important {
+  border-left-color: var(--meat-dim);
+  color: var(--bone);
+}
