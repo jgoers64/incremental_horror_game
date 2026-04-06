@@ -3,34 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Buried Hunger</title>
+  <title>Alien Colony</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="app">
     <header class="top-bar">
       <div class="brand">
-        <h1 class="title">Buried Hunger</h1>
+        <h1 class="title">Alien Colony</h1>
         <span id="game-version" class="version"></span>
       </div>
-      <div class="resources">
-        <div class="stat">
-          <span class="stat-label">Meat</span>
-          <span id="meat-display" class="stat-value meat">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Meat / sec</span>
-          <span id="mps-display" class="stat-value">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Lifetime Meat</span>
-          <span id="total-display" class="stat-value">0</span>
-        </div>
-        <div class="stat">
-          <span class="stat-label">Bite power</span>
-          <span id="click-display" class="stat-value">1</span>
-        </div>
-      </div>
+      <div id="resources-row" class="resources" aria-label="Resources"></div>
       <div class="top-actions">
         <button type="button" id="btn-save" class="btn btn-outline">Save</button>
         <button type="button" id="btn-reset" class="btn btn-danger">Reset</button>
@@ -38,67 +21,142 @@
     </header>
 
     <main class="main-grid">
-      <aside class="panel panel-left">
-        <h2 class="panel-heading">Body</h2>
-        <p class="panel-note">Organs and traps that keep feeding on their own.</p>
-        <div id="buildings-list" class="card-list"></div>
+      <aside class="panel panel-left" aria-label="Hatchery">
+        <h2 class="panel-heading">Hatchery</h2>
+        <div class="bulk-buy-bar" role="group" aria-label="Purchase quantity">
+          <span class="bulk-buy-label">Buy</span>
+          <button type="button" class="bulk-opt active" data-bulk="1" aria-pressed="true">×1</button>
+          <button type="button" class="bulk-opt" data-bulk="10" aria-pressed="false">×10</button>
+          <button type="button" class="bulk-opt" data-bulk="100" aria-pressed="false">×100</button>
+          <button type="button" class="bulk-opt" data-bulk="max" aria-pressed="false">Max</button>
+        </div>
+        <div id="organisms-list" class="card-list"></div>
       </aside>
 
-      <section class="center creature-chamber" aria-labelledby="creature-form-name">
-        <div class="chamber-vignette" aria-hidden="true"></div>
-        <div class="chamber-damp" aria-hidden="true"></div>
+      <section class="center expedition-column" aria-label="Expedition">
+        <div class="expedition-panel expedition-panel--main">
+          <p id="expedition-idle-status" class="expedition-idle-status" aria-live="polite"></p>
+          <h2 class="expedition-main-title">Expedition</h2>
+          <p class="expedition-hint">
+            Pick hunt grounds—every ready hunter deploys there automatically for 30s. While a run is in progress, use Speed up hunt (1s per click).
+          </p>
 
-        <header class="chamber-header">
-          <span class="chamber-kicker">Creature</span>
-          <div class="chamber-title-row">
-            <span id="creature-level" class="level-badge">LVL 1</span>
-            <h2 id="creature-form-name" class="form-name">Larval Snare</h2>
-          </div>
-        </header>
+          <div id="area-list" class="area-list" role="listbox" aria-label="Hunting areas"></div>
 
-        <div id="creature-stage" class="creature-stage">
-          <!-- Sprite: one element, native aspect ratio, height-driven scale (see style.css) -->
-          <div id="creature-visual" class="creature creature--1" role="img"></div>
-        </div>
+          <p id="area-blurb" class="area-blurb"></p>
 
-        <p class="feed-command-label">Command feed</p>
-        <button type="button" id="btn-feed" class="feed-btn">
-          <span id="feed-label" class="feed-label">Snatch Bug</span>
-          <span id="feed-hint" class="feed-hint">+1 Meat per bite</span>
-        </button>
-        <p id="creature-flavor" class="whisper chamber-flavor"></p>
+          <div class="area-preview" id="area-preview-root" aria-label="Selected hunt ground">
+            <div class="area-preview__header">
+              <span class="area-preview__kicker">Hunt ground</span>
+              <span class="area-preview__title" id="area-preview-title">—</span>
+            </div>
+            <div class="area-preview__viewport" id="area-preview-viewport">
+              <img
+                id="area-preview-img"
+                class="area-preview__img"
+                alt=""
+                decoding="async"
+              />
+              <div
+                id="area-preview-scene"
+                class="area-preview__scene area-preview__scene--prairie"
+                aria-hidden="true"
+              ></div>
+              <div class="area-preview__vignette" aria-hidden="true"></div>
+              <div class="area-preview__grain" aria-hidden="true"></div>
+            </div>
+            <div
+              class="hunt-progress hunt-progress--hidden"
+              id="hunt-progress"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-hidden="true"
+              aria-label="Hunt progress"
+            >
+              <div class="hunt-progress__track">
+                <div class="hunt-progress__fill" id="hunt-progress-fill"></div>
+              </div>
+            </div>
+            <div class="area-preview__prey" id="area-preview-prey"></div>
+          </div>
 
-        <div class="chamber-stats" aria-label="Creature chamber readout">
-          <div class="chamber-stat">
-            <span class="chamber-stat-label">Meat</span>
-            <span id="center-meat" class="chamber-stat-value meat">0</span>
+          <div class="deploy-block deploy-block--hunt-only">
+            <button type="button" id="btn-hunt" class="btn btn-send">Hunt</button>
           </div>
-          <div class="chamber-stat">
-            <span class="chamber-stat-label">Meat / sec</span>
-            <span id="center-mps" class="chamber-stat-value">0</span>
-          </div>
-          <div class="chamber-stat">
-            <span class="chamber-stat-label">Bite</span>
-            <span id="center-click" class="chamber-stat-value">1</span>
-          </div>
-          <div class="chamber-stat">
-            <span class="chamber-stat-label">Lifetime</span>
-            <span id="center-total" class="chamber-stat-value">0</span>
-          </div>
+
+          <div id="hunt-last-report" class="hunt-last-report" aria-live="polite"></div>
         </div>
       </section>
-
-      <aside class="panel panel-right">
-        <h2 class="panel-heading">Mutations</h2>
-        <p class="panel-note">Permanent changes to how you bite and digest.</p>
-        <div id="upgrades-list" class="card-list"></div>
-      </aside>
     </main>
 
-    <footer class="log-section">
-      <h2 class="panel-heading log-heading">Burrow log</h2>
-      <div id="event-log" class="event-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+    <footer class="footer-logs">
+      <section class="log-section log-section--hunts">
+        <h2 class="panel-heading log-heading">Hunt reports</h2>
+        <div id="hunt-history" class="hunt-history" role="log" aria-live="polite"></div>
+      </section>
+      <section class="log-section log-section--events">
+        <h2 class="panel-heading log-heading">Colony log</h2>
+        <div id="event-log" class="event-log" role="log" aria-live="polite" aria-relevant="additions"></div>
+      </section>
     </footer>
+  </div>
+
+  <div
+    id="unit-detail-modal"
+    class="unit-detail-modal is-hidden"
+    aria-hidden="true"
+  >
+    <button
+      type="button"
+      class="unit-detail-backdrop"
+      id="unit-detail-backdrop"
+      aria-label="Close dossier"
+    ></button>
+    <div
+      class="unit-detail-panel creature-chamber"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-unit-name"
+    >
+      <button
+        type="button"
+        class="unit-detail-close btn"
+        id="unit-detail-close"
+        aria-label="Close"
+      >
+        ×
+      </button>
+      <div class="chamber-vignette" aria-hidden="true"></div>
+      <div class="chamber-damp" aria-hidden="true"></div>
+
+      <header class="chamber-header">
+        <span class="chamber-kicker">Pack focus</span>
+        <div class="chamber-title-row">
+          <h2 id="modal-unit-name" class="form-name"></h2>
+        </div>
+      </header>
+
+      <div id="creature-stage" class="creature-stage">
+        <div
+          id="creature-visual"
+          class="creature creature--1"
+          role="img"
+          aria-label=""
+        ></div>
+        <img
+          id="creature-dossier-img"
+          class="creature-dossier-img"
+          alt=""
+          decoding="async"
+          hidden
+        />
+      </div>
+
+      <p id="creature-flavor" class="whisper chamber-flavor"></p>
+
+      <div id="unit-combat-rates" class="unit-combat-rates"></div>
+    </div>
   </div>
 
   <script src="script.js"></script>

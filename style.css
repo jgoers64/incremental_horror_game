@@ -1,4 +1,4 @@
-/* Buried Hunger — subterranean flesh / decay UI */
+/* Alien Colony — subterranean flesh / decay UI */
 
 :root {
   --void: #070504;
@@ -9,6 +9,10 @@
   --muted: #7a655c;
   --meat: #c45c52;
   --meat-dim: #8a3a35;
+  --teeth: #d4c4a8;
+  --scales: #6a9a8a;
+  --heart: #b84d6a;
+  --brains: #9b86c9;
   --flesh: #a67b6f;
   --ichor: #4a2a22;
   --bone: #c4b5a8;
@@ -53,7 +57,8 @@ body {
 }
 
 .app {
-  max-width: 1180px;
+  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
   padding: 14px 18px 24px;
   min-height: 100vh;
@@ -130,6 +135,35 @@ body {
   text-shadow: 0 0 14px rgba(196, 92, 82, 0.25);
 }
 
+.stat-value.teeth {
+  color: var(--teeth);
+}
+
+.stat-value.scales {
+  color: var(--scales);
+}
+
+.stat-value.heart {
+  color: var(--heart);
+}
+
+.stat-value.brains {
+  color: var(--brains);
+}
+
+.stat-locked {
+  opacity: 0.62;
+}
+
+.stat-locked .stat-label {
+  color: var(--muted);
+}
+
+.stat-locked .stat-value {
+  color: var(--muted) !important;
+  text-shadow: none !important;
+}
+
 .top-actions {
   display: flex;
   gap: 10px;
@@ -181,21 +215,31 @@ body {
 /* --- Grid --- */
 .main-grid {
   display: grid;
-  grid-template-columns: 1fr minmax(300px, 420px) 1fr;
-  gap: 14px;
+  grid-template-columns: minmax(300px, 420px) minmax(0, 1fr);
+  gap: 16px;
   flex: 1;
-  /* Top-align columns so the center panel is not stretched to match side height. */
-  align-items: start;
-  min-height: 300px;
+  align-items: stretch;
+  min-height: 320px;
+}
+
+@media (min-width: 921px) {
+  .main-grid {
+    min-height: min(74vh, 860px);
+  }
 }
 
 @media (max-width: 920px) {
   .main-grid {
     grid-template-columns: 1fr;
+    min-height: 0;
   }
 
   .creature-chamber {
     --creature-display-h-num: 260;
+  }
+
+  .unit-detail-panel.creature-chamber {
+    --creature-display-h-num: 240;
   }
 }
 
@@ -207,6 +251,11 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 0;
+}
+
+.panel-left {
+  min-height: 0;
 }
 
 .panel-heading {
@@ -229,17 +278,152 @@ body {
   gap: 10px;
 }
 
+.bulk-buy-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  margin-bottom: 10px;
+}
+
+.bulk-buy-label {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.bulk-opt {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--ichor);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+
+.bulk-opt:hover {
+  border-color: var(--panel-edge);
+  color: var(--bone);
+}
+
+.bulk-opt.active {
+  border-color: var(--meat-dim);
+  background: rgba(196, 92, 82, 0.12);
+  color: var(--meat);
+}
+
 /* --- Buy cards --- */
 .card {
   padding: 12px 14px;
   background: var(--surface);
   border: 1px solid var(--ichor);
   border-radius: 5px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  /* No transition: border repaint + frequent stat updates were causing hover flicker. */
+}
+
+.card.card--dossier {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border-color: var(--panel-edge);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.35);
+}
+
+.card-unit-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 88px;
+}
+
+.card-unit-main {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.2) 0%, transparent 55%);
+}
+
+.card-portrait {
+  position: relative;
+  flex: 0 0 80px;
+  width: 80px;
+  min-height: 88px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 100%, rgba(90, 35, 30, 0.25) 0%, transparent 70%),
+    #0a0706;
+  border-right: 1px solid var(--ichor);
+}
+
+.card-portrait__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  z-index: 2;
+  opacity: 0;
+  transition: opacity 0.2s ease-out;
+  /* Painterly portraits: avoid pixelated filter hiding detail */
+  image-rendering: auto;
+}
+
+.card-portrait__img.is-loaded {
+  opacity: 1;
+}
+
+.card-portrait__fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.card-portrait:has(.card-portrait__img.is-loaded) .card-portrait__fallback {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.card-portrait .card-portrait-creature {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  transform: translate(-50%, -50%) scale(0.19);
+  transform-origin: center center;
+  --creature-display-h-num: 72;
+  --creature-vcrop-zoom: 2.35;
+}
+
+.card.card--dossier .card-head {
+  margin-bottom: 0;
+}
+
+.card.card--dossier .card-foot {
+  margin-top: auto;
 }
 
 .card:hover {
   border-color: var(--panel-edge);
+}
+
+.card-mysterious .card-name {
+  font-family: var(--font-mono);
+  letter-spacing: 0.12em;
+  color: var(--muted);
 }
 
 .card-head {
@@ -260,6 +444,7 @@ body {
   font-family: var(--font-mono);
   font-size: 0.7rem;
   color: var(--muted);
+  font-variant-numeric: tabular-nums;
 }
 
 .card-mps {
@@ -281,6 +466,7 @@ body {
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--meat);
+  font-variant-numeric: tabular-nums;
 }
 
 .card-desc {
@@ -320,7 +506,6 @@ body {
   background: rgba(196, 92, 82, 0.1);
   color: var(--meat);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, transform 0.08s;
 }
 
 .btn-buy:hover:not(:disabled) {
@@ -329,7 +514,7 @@ body {
 }
 
 .btn-buy:active:not(:disabled) {
-  transform: scale(0.97);
+  opacity: 0.92;
 }
 
 .btn-buy:disabled {
@@ -477,6 +662,52 @@ body {
   filter: drop-shadow(0 10px 24px rgba(0, 0, 0, 0.6));
 }
 
+/* Full-bleed dossier art: no narrow centered strip (matches .creature-chamber padding 18px). */
+.creature-stage--dossier-photo {
+  width: calc(100% + 36px);
+  max-width: none;
+  margin: 4px -18px 2px;
+}
+
+/* Dossier modal: one portrait — full art replaces the evolution sprite (Fleshmite).
+   No fixed aspect ratio: avoids letterboxing and #070504 bars around non-square art. */
+.creature-dossier-img {
+  display: none;
+  box-sizing: border-box;
+  margin: 0 auto;
+  max-width: min(100%, 320px);
+  width: 100%;
+  height: auto;
+  vertical-align: middle;
+  border-radius: 4px;
+  border: 1px solid var(--ichor);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
+  background: transparent;
+}
+
+.creature-stage--dossier-photo .creature-dossier-img:not([hidden]) {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+}
+
+.creature-stage--dossier-photo #creature-visual {
+  display: none !important;
+  position: absolute;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  clip-path: inset(50%);
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .creature-stage.creature-lunge {
   animation: chamber-lunge 0.38s ease-out;
 }
@@ -572,96 +803,6 @@ body {
   }
 }
 
-.feed-command-label {
-  position: relative;
-  z-index: 1;
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  text-align: center;
-  color: var(--muted);
-}
-
-.feed-btn {
-  position: relative;
-  z-index: 1;
-  align-self: center;
-  width: min(100%, 280px);
-  min-height: 100px;
-  padding: 18px 24px;
-  border: 2px solid var(--meat-dim);
-  border-radius: 48% 48% 46% 46% / 42% 42% 58% 58%;
-  background: linear-gradient(160deg, #2a1814 0%, #0f0a08 100%);
-  color: var(--text);
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  box-shadow:
-    0 0 0 1px rgba(0, 0, 0, 0.6),
-    0 12px 40px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(196, 92, 82, 0.12);
-  transition: transform 0.12s ease-out, box-shadow 0.15s, border-color 0.15s;
-  animation: feed-idle 6s ease-in-out infinite;
-}
-
-@keyframes feed-idle {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.012);
-  }
-}
-
-.feed-btn:hover {
-  border-color: var(--meat);
-  box-shadow:
-    0 0 20px rgba(196, 92, 82, 0.15),
-    0 12px 40px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(196, 92, 82, 0.18);
-}
-
-.feed-btn:active {
-  transform: scale(0.94);
-  animation: none;
-}
-
-.feed-btn.clicked {
-  animation: feed-click 0.28s ease-out;
-}
-
-@keyframes feed-click {
-  0% {
-    transform: scale(1);
-  }
-  40% {
-    transform: scale(0.92);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-.feed-label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--meat);
-}
-
-.feed-hint {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
 .whisper {
   position: relative;
   z-index: 1;
@@ -683,13 +824,23 @@ body {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px 12px;
   margin-top: 4px;
   padding: 10px 12px;
   background: rgba(0, 0, 0, 0.35);
   border: 1px solid var(--ichor);
   border-radius: 5px;
+}
+
+.chamber-stat--wide {
+  grid-column: 1 / -1;
+}
+
+.hunt-status-line {
+  font-size: 0.72rem !important;
+  line-height: 1.35;
+  color: var(--bone) !important;
 }
 
 .chamber-stat {
@@ -717,7 +868,329 @@ body {
   color: var(--meat);
 }
 
+/* --- Expedition --- */
+.expedition-panel {
+  position: relative;
+  z-index: 1;
+  margin-top: 6px;
+  padding: 12px 14px 14px;
+  background: rgba(0, 0, 0, 0.38);
+  border: 1px solid var(--ichor);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.expedition-idle-status {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.4;
+  color: var(--bone);
+  min-height: 1.35em;
+}
+
+.expedition-idle-status:empty {
+  display: none;
+}
+
+.hunt-progress {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 0 1px;
+}
+
+.hunt-progress--hidden {
+  display: none;
+}
+
+.hunt-progress__track {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(90, 62, 48, 0.65);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.hunt-progress__fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  background: linear-gradient(
+    180deg,
+    rgba(196, 120, 88, 0.95) 0%,
+    rgba(130, 52, 42, 0.98) 50%,
+    rgba(88, 32, 28, 1) 100%
+  );
+  box-shadow:
+    0 0 10px rgba(196, 92, 82, 0.35),
+    inset 0 1px 0 rgba(255, 200, 180, 0.2);
+  transition: width 0.12s linear;
+}
+
+.expedition-title {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--meat-dim);
+}
+
+.expedition-hint {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.expedition-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.expedition-panel--main {
+  margin-top: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-edge);
+  flex: 1;
+  min-height: min(520px, 70vh);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 16px;
+  box-shadow:
+    inset 0 0 80px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(196, 92, 82, 0.05);
+}
+
+@media (max-width: 920px) {
+  .expedition-panel--main {
+    min-height: 0;
+  }
+}
+
+.expedition-main-title {
+  margin: 0;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--meat-dim);
+}
+
+.card.card--dossier {
+  cursor: pointer;
+}
+
+.card.card--dossier:hover {
+  border-color: var(--meat-dim);
+  box-shadow:
+    inset 0 0 0 1px rgba(196, 92, 82, 0.12),
+    0 4px 18px rgba(0, 0, 0, 0.35);
+}
+
+.card.card--dossier .btn-buy {
+  cursor: pointer;
+}
+
+.area-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.area-row {
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--ichor);
+  border-radius: 5px;
+  cursor: default;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.area-row.selected {
+  border-color: var(--meat-dim);
+  background: rgba(196, 92, 82, 0.08);
+}
+
+.area-row.locked {
+  opacity: 0.92;
+}
+
+.area-row:not(.locked):hover {
+  border-color: var(--panel-edge);
+}
+
+.area-row-title {
+  font-weight: 600;
+  color: var(--bone);
+  font-size: 0.85rem;
+}
+
+.area-unlock-cost {
+  margin-top: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--muted);
+}
+
+.btn-unlock {
+  margin-top: 8px;
+  font-size: 0.62rem;
+  padding: 7px 12px;
+}
+
+.area-blurb {
+  margin: 0;
+  font-size: 0.76rem;
+  font-style: italic;
+  color: var(--muted);
+  min-height: 2.4em;
+}
+
+.deploy-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.deploy-block--hunt-only {
+  margin-top: 4px;
+}
+
+.deploy-block--hunt-only .btn-send {
+  width: 100%;
+}
+
+.deploy-label {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+
+.deploy-select {
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--ichor);
+  background: var(--void);
+  color: var(--text);
+}
+
+.deploy-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.deploy-input {
+  width: 72px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 8px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--ichor);
+  background: var(--void);
+  color: var(--text);
+}
+
+.btn-step {
+  min-width: 40px;
+  padding: 8px 10px;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-max {
+  font-size: 0.62rem !important;
+  letter-spacing: 0.06em;
+}
+
+.btn-send {
+  margin-top: 4px;
+  width: 100%;
+  padding: 11px 16px;
+  font-size: 0.72rem;
+  border-color: var(--meat);
+  background: rgba(196, 92, 82, 0.15);
+  color: var(--meat);
+}
+
+.btn-send:hover:not(:disabled) {
+  background: rgba(196, 92, 82, 0.28);
+}
+
+.hunt-last-report {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.55;
+  color: var(--muted);
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 4px;
+  border-left: 3px solid var(--meat-dim);
+  min-height: 4.5em;
+}
+
+.hunt-last-report strong {
+  color: var(--bone);
+  font-weight: 600;
+}
+
+/*
+ * Native OS scrollbars on the hunt log read like a bright “sidebar” between columns.
+ * Thin, dark tracks match the colony UI (Firefox + Chromium).
+ */
+.hunt-history,
+.event-log {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ichor) rgba(0, 0, 0, 0.35);
+}
+
+.hunt-history::-webkit-scrollbar,
+.event-log::-webkit-scrollbar {
+  width: 6px;
+}
+
+.hunt-history::-webkit-scrollbar-track,
+.event-log::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.25);
+  border-radius: 3px;
+}
+
+.hunt-history::-webkit-scrollbar-thumb,
+.event-log::-webkit-scrollbar-thumb {
+  background: var(--ichor);
+  border-radius: 3px;
+}
+
+.hunt-history::-webkit-scrollbar-thumb:hover,
+.event-log::-webkit-scrollbar-thumb:hover {
+  background: var(--panel-edge);
+}
+
 /* --- Log --- */
+.footer-logs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 920px) {
+  .footer-logs {
+    grid-template-columns: 1fr;
+  }
+}
+
 .log-section {
   background: var(--panel);
   border: 1px solid var(--panel-edge);
@@ -726,8 +1199,12 @@ body {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  min-height: 110px;
-  max-height: 170px;
+  min-height: 140px;
+  max-height: 240px;
+}
+
+.log-section--events {
+  max-height: 260px;
 }
 
 .log-heading {
@@ -753,4 +1230,499 @@ body {
 .event-log .line.important {
   border-left-color: var(--meat-dim);
   color: var(--bone);
+}
+
+.hunt-history {
+  flex: 1;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1.5;
+  color: var(--muted);
+  padding-right: 6px;
+}
+
+.hunt-history-item {
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-left: 2px solid var(--ichor);
+}
+
+.hunt-history-item strong {
+  color: var(--bone);
+}
+
+/* --- Unit dossier modal --- */
+.unit-detail-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 20px 16px 40px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ichor) rgba(0, 0, 0, 0.4);
+}
+
+.unit-detail-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.unit-detail-modal::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.unit-detail-modal::-webkit-scrollbar-thumb {
+  background: var(--ichor);
+  border-radius: 3px;
+}
+
+.unit-detail-modal::-webkit-scrollbar-thumb:hover {
+  background: var(--panel-edge);
+}
+
+.unit-detail-modal.is-hidden {
+  display: none !important;
+}
+
+.unit-detail-backdrop {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.78);
+  cursor: pointer;
+  z-index: 0;
+}
+
+.unit-detail-panel.creature-chamber {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  margin-top: 24px;
+  margin-bottom: 24px;
+  --creature-display-h-num: 280;
+}
+
+.unit-detail-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 5;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  line-height: 1;
+  font-size: 1.35rem;
+  border-radius: 4px;
+  opacity: 0.9;
+}
+
+.unit-detail-close:hover {
+  opacity: 1;
+}
+
+.unit-combat-rates {
+  position: relative;
+  z-index: 2;
+  text-align: left;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ichor);
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.unit-rates-heading {
+  margin: 0 0 10px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--meat-dim);
+}
+
+.unit-rates-list strong {
+  color: var(--bone);
+}
+
+.unit-rates-list > div {
+  margin-bottom: 8px;
+}
+
+.unit-rates-note {
+  margin: 0 0 10px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.unit-rates-list ul {
+  margin: 6px 0 0;
+  padding-left: 1.1em;
+}
+
+/* --- Hunt ground preview (Expedition) --- */
+.area-preview {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.area-preview__header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.area-preview__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+}
+
+.area-preview__title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--bone);
+  text-shadow: 0 0 24px rgba(196, 92, 82, 0.12);
+}
+
+.area-preview__viewport {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 200px;
+  max-height: min(38vh, 400px);
+  border-radius: 6px;
+  border: 1px solid var(--ichor);
+  overflow: hidden;
+  background: #050302;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 -20px 40px rgba(0, 0, 0, 0.65);
+}
+
+.area-preview__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.area-preview__scene::before,
+.area-preview__scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Prairie — level-1 grassland fallback when no image */
+.area-preview__scene--prairie {
+  background:
+    radial-gradient(ellipse 100% 65% at 50% 100%, rgba(72, 58, 28, 0.4) 0%, transparent 52%),
+    linear-gradient(185deg, #12100c 0%, #18150e 42%, #141108 100%);
+}
+
+.area-preview__scene--prairie::before {
+  bottom: 0;
+  top: 22%;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.45) 100%);
+  clip-path: polygon(
+    0 62%,
+    10% 48%,
+    22% 58%,
+    35% 44%,
+    48% 56%,
+    60% 42%,
+    72% 54%,
+    85% 46%,
+    100% 52%,
+    100% 100%,
+    0 100%
+  );
+  opacity: 0.88;
+}
+
+.area-preview__scene--prairie::after {
+  top: 0;
+  height: 38%;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(90, 70, 40, 0.12) 0%, transparent 70%);
+  opacity: 0.85;
+}
+
+/* Cave — rocky silhouette, damp red undertone */
+.area-preview__scene--cave {
+  background:
+    radial-gradient(ellipse 100% 55% at 50% 115%, rgba(110, 38, 32, 0.45) 0%, transparent 52%),
+    radial-gradient(ellipse 35% 25% at 18% 55%, rgba(0, 0, 0, 0.55) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 22% at 82% 58%, rgba(0, 0, 0, 0.5) 0%, transparent 68%),
+    linear-gradient(185deg, #0c0706 0%, #140b09 38%, #1a0f0c 100%);
+}
+
+.area-preview__scene--cave::before {
+  bottom: 0;
+  top: 18%;
+  background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.5) 100%);
+  clip-path: polygon(
+    0 55%,
+    6% 38%,
+    12% 48%,
+    20% 32%,
+    28% 44%,
+    38% 28%,
+    48% 40%,
+    58% 22%,
+    68% 36%,
+    78% 26%,
+    88% 42%,
+    94% 34%,
+    100% 50%,
+    100% 100%,
+    0 100%
+  );
+  opacity: 0.92;
+}
+
+.area-preview__scene--cave::after {
+  top: 0;
+  height: 42%;
+  background: repeating-linear-gradient(
+    -75deg,
+    transparent,
+    transparent 3px,
+    rgba(20, 12, 10, 0.15) 3px,
+    rgba(20, 12, 10, 0.15) 4px
+  );
+  mask-image: linear-gradient(180deg, black 0%, transparent 100%);
+  opacity: 0.6;
+}
+
+/* Forest */
+.area-preview__scene--forest {
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 100%, rgba(25, 42, 28, 0.5) 0%, transparent 50%),
+    linear-gradient(180deg, #060807 0%, #0d120e 50%, #0a0f0c 100%);
+}
+
+.area-preview__scene--forest::before {
+  bottom: 0;
+  top: 25%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.55));
+  clip-path: polygon(
+    0 70%,
+    8% 45%,
+    15% 62%,
+    22% 40%,
+    30% 58%,
+    42% 35%,
+    52% 52%,
+    62% 38%,
+    72% 55%,
+    82% 42%,
+    92% 58%,
+    100% 48%,
+    100% 100%,
+    0 100%
+  );
+  opacity: 0.85;
+}
+
+.area-preview__scene--forest::after {
+  background: radial-gradient(circle at 30% 20%, rgba(40, 55, 40, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 70% 15%, rgba(35, 50, 38, 0.1) 0%, transparent 35%);
+}
+
+/* Village edge */
+.area-preview__scene--village {
+  background:
+    linear-gradient(180deg, #0a0807 0%, #120e0c 40%, #181210 100%),
+    radial-gradient(ellipse 80% 40% at 50% 0%, rgba(55, 45, 38, 0.12) 0%, transparent 60%);
+}
+
+.area-preview__scene--village::before {
+  bottom: 28%;
+  top: 35%;
+  border-bottom: 1px solid rgba(80, 65, 55, 0.2);
+  background: repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 24px,
+    rgba(50, 42, 36, 0.12) 24px,
+    rgba(50, 42, 36, 0.12) 25px
+  );
+  opacity: 0.7;
+}
+
+.area-preview__scene--village::after {
+  bottom: 0;
+  height: 35%;
+  background: linear-gradient(180deg, transparent, rgba(0, 0, 0, 0.65));
+}
+
+/* City */
+.area-preview__scene--city {
+  background: linear-gradient(180deg, #060506 0%, #0e0c10 55%, #121018 100%);
+}
+
+.area-preview__scene--city::before {
+  bottom: 0;
+  top: 15%;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(30, 28, 38, 0.25) 0,
+    rgba(30, 28, 38, 0.25) 14px,
+    transparent 14px,
+    transparent 22px
+  );
+  mask-image: linear-gradient(180deg, black 20%, transparent 95%);
+  opacity: 0.55;
+}
+
+.area-preview__scene--city::after {
+  bottom: 0;
+  height: 22%;
+  background: linear-gradient(90deg, transparent, rgba(196, 92, 82, 0.06), transparent);
+}
+
+.area-preview__img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  opacity: 0;
+  transition: opacity 0.35s ease-out;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.area-preview__img.is-loaded {
+  opacity: 1;
+}
+
+.area-preview__viewport--has-image .area-preview__scene {
+  opacity: 0.35;
+  filter: saturate(0.85) brightness(0.75);
+}
+
+.area-preview__vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 30%, rgba(0, 0, 0, 0.75) 100%);
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.5);
+}
+
+.area-preview__grain {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  opacity: 0.07;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+}
+
+.area-preview__prey {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  min-height: 1.6em;
+}
+
+.prey-chip {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 5px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--ichor);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--muted);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.2;
+  cursor: help;
+}
+
+.prey-chip small {
+  font-size: 0.52rem;
+  letter-spacing: 0.14em;
+  opacity: 0.75;
+  color: var(--meat-dim);
+  text-transform: uppercase;
+}
+
+.prey-chip--common {
+  border-color: rgba(90, 75, 68, 0.6);
+}
+
+.prey-chip--uncommon {
+  border-color: rgba(122, 101, 92, 0.55);
+  color: var(--bone);
+}
+
+.prey-chip--rare {
+  border-color: var(--meat-dim);
+  color: var(--meat);
+  background: rgba(196, 92, 82, 0.06);
+  box-shadow: 0 0 12px rgba(196, 92, 82, 0.08);
+}
+
+.expedition-panel--main .hunt-last-report {
+  flex-shrink: 0;
+}
+
+.expedition-panel--main .deploy-block--hunt-only {
+  flex-shrink: 0;
+}
+
+@media (max-width: 920px) {
+  .area-preview__viewport {
+    max-height: 260px;
+  }
+
+  .card-unit-row {
+    min-height: 80px;
+  }
+
+  .card-portrait {
+    flex-basis: 72px;
+    width: 72px;
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 520px) {
+  .card-unit-row {
+    flex-direction: column;
+  }
+
+  .card-portrait {
+    width: 100%;
+    min-height: 72px;
+    border-right: none;
+    border-bottom: 1px solid var(--ichor);
+  }
+
+  .card-portrait .card-portrait-creature {
+    transform: translate(-50%, -50%) scale(0.16);
+  }
 }
